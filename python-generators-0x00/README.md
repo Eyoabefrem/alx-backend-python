@@ -1,23 +1,46 @@
-# Python Generator - SQL Streaming
+# Python Generators: Memory-Efficient Data Streaming with MySQL
 
-## Objective
+## 📚 Overview
 
-Create a script to set up a MySQL database and stream data row-by-row using a generator pattern.
+This project demonstrates how Python **generators** can be used to efficiently process large datasets from a MySQL database. Instead of loading entire tables into memory, we use generators to stream, paginate, and process data in chunks or on-demand — making the code scalable and performant.
 
-## Features
+We simulate real backend behavior such as:
+- Setting up a database and populating it from a CSV file
+- Streaming user records one by one
+- Fetching data in batches
+- Paginating data lazily
+- Calculating aggregate values (like average age) efficiently without SQL's aggregation functions
 
-- Connects to MySQL server
-- Creates `ALX_prodev` database and `user_data` table
-- Populates data from `user_data.csv`
-- Prepares for generator-based streaming
+---
 
-## Usage
+## ⚙️ Technologies Used
 
-Make sure MySQL is running and accessible.
+- **Python 3**
+- **MySQL**
+- **mysql-connector-python**
+- **CSV file for dataset**
+- **Generators and yield expressions**
 
-1. Update `seed.py` with your MySQL credentials.
-2. Place `user_data.csv` in the same directory.
-3. Run the driver script (e.g., `0-main.py`).
+---
+
+## 🗃️ Database Schema
+
+**Database Name:** `ALX_prodev`  
+**Table:** `user_data`
+
+| Column Name | Type         | Description                 |
+|-------------|--------------|-----------------------------|
+| user_id     | UUID (PK)    | Primary key, Indexed        |
+| name        | VARCHAR      | User's full name            |
+| email       | VARCHAR      | User's email address        |
+| age         | DECIMAL      | User's age (can be float)   |
+
+---
+
+## 🔧 Project Setup
+
+1. Ensure you have MySQL installed and running.
+2. Install the MySQL connector:
 
 ```bash
-./0-main.py
+pip install mysql-connector-python
