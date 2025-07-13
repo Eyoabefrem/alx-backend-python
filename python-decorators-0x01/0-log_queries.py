@@ -2,8 +2,9 @@
 import sqlite3
 import functools
 
+#### decorator to log SQL queries
 def log_queries(func):
-    """Decorator to log SQL queries before executing them."""
+    """Decorator that logs the SQL query before executing it."""
     @functools.wraps(func)
     def wrapper(query, *args, **kwargs):
         print(f"Executing SQL Query: {query}")
