@@ -1,60 +1,52 @@
 #!/usr/bin/env python3
 """
-Serializers for the chats app models.
-
-Defines serializers for User, Conversation, and Message models,
-including nested relationships such as messages within a conversation.
+Serializers for User, Conversation, and Message models with validations.
 """
 
 from rest_framework import serializers
-from .models import User, Conversation, Message
+from django.contrib.auth import get_user_model
+from .models import Conversation, Message
+
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer for User model."""
+    """Serializer for the User model."""
 
     class Meta:
         model = User
-        fields = [
-            "user_id",
-            "first_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "role",
-            "created_at",
-        ]
-        read_only_fields = ("user_id", "created_at")
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'role']
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    """Serializer for Message model."""
+    """Serializer for the Message model."""
 
     sender = UserSerializer(read_only=True)
+    message_body = serializers.CharField()
 
     class Meta:
         model = Message
-        fields = [
-            "message_id",
-            "sender",
-            "message_body",
-            "sent_at",
-        ]
-        read_only_fields = ("message_id", "sent_at")
+        fields = ['id', 'sender', 'message_body', 'sent_at']
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    """Serializer for Conversation model including nested messages and participants."""
+    """Serializer for the Conversation model."""
 
     participants = UserSerializer(many=True, read_only=True)
-    messages = MessageSerializer(many=True, read_only=True)
+    messages = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = [
-            "conversation_id",
-            "participants",
-            "messages",
-            "created_at",
-        ]
-        read_only_fields = ("conversation_id", "created_at")
+        fields = ['id', 'participants', 'created_at', 'messages']
+
+    def get_messages(self, obj):
+        """Get messages related to the conversation."""
+        messages = obj.messages.all()
+        return MessageSerializer(messages, many=True).data
+
+    def validate_participants(self, value):
+        """Ensure there are at least two participants."""
+        if len(value) < 2:
+            raise serializers.ValidationError("A conversation must have at least two participants.")
+        return value
