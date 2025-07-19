@@ -60,7 +60,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ) as mock_url:
             mock_url.return_value = (
                 "https://api.github.com/orgs/test_org/repos"
-            ) 
+            )
 
             client = GithubOrgClient("test_org")
             result = client.public_repos()
