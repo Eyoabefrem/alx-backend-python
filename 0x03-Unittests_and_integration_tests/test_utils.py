@@ -24,6 +24,7 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": {"b": 2}}, ("a", "b"), 2),
     ])
     def test_access_nested_map(self, nested_map, path, expected):
+        """Test that access_nested_map returns correct value for a valid path."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
@@ -31,6 +32,7 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": 1}, ("a", "b")),
     ])
     def test_access_nested_map_exception(self, nested_map, path):
+        """Test that access_nested_map raises KeyError when path is invalid."""
         with self.assertRaises(KeyError) as context:
             access_nested_map(nested_map, path)
         self.assertEqual(str(context.exception), repr(path[-1]))
@@ -45,6 +47,7 @@ class TestGetJson(unittest.TestCase):
     ])
     @patch('utils.requests.get')
     def test_get_json(self, test_url, test_payload, mock_get):
+        """Test that get_json returns the expected JSON payload from a URL."""
         mock_response = Mock()
         mock_response.json.return_value = test_payload
         mock_get.return_value = mock_response
@@ -59,6 +62,7 @@ class TestMemoize(unittest.TestCase):
     """Unit tests for memoize."""
 
     def test_memoize(self):
+        """Test that memoize caches method results to avoid redundant calls."""
         class TestClass:
             def a_method(self):
                 return 42
