@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Unittests and integration tests for the GithubOrgClient class.
+
+This module contains tests that cover various methods of the GithubOrgClient,
+including unit tests with mocking and parameterization, as well as integration
+tests using patched HTTP responses and predefined fixtures.
+"""
+
 import unittest
 from unittest.mock import patch, PropertyMock, Mock
 from parameterized import parameterized, parameterized_class
@@ -22,7 +30,9 @@ class TestGithubOrgClient(unittest.TestCase):
         client = GithubOrgClient(org_name)
         result = client.org
 
-        mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
+        mock_get_json.assert_called_once_with(
+            f"https://api.github.com/orgs/{org_name}"
+        )
         self.assertEqual(result, test_payload)
 
     @patch('client.GithubOrgClient.org', new_callable=PropertyMock)
@@ -44,7 +54,10 @@ class TestGithubOrgClient(unittest.TestCase):
             {"name": "repo2"},
         ]
 
-        with patch('client.GithubOrgClient._public_repos_url', new_callable=PropertyMock) as mock_url:
+        with patch(
+            'client.GithubOrgClient._public_repos_url',
+            new_callable=PropertyMock
+        ) as mock_url:
             mock_url.return_value = "https://api.github.com/orgs/test_org/repos"
 
             client = GithubOrgClient("test_org")
@@ -107,8 +120,3 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
             client.public_repos(license="apache-2.0"),
             self.apache2_repos
         )
-
-
-if __name__ == '__main__':
-    unittest.main()
-    
