@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """
-URL routing for chats app.
-
-Defines API routes for Conversation and Message viewsets using DRF's DefaultRouter.
+URL routing for the chats app.
 """
 
 from django.urls import path, include
