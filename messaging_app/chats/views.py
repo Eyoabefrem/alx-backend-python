@@ -19,6 +19,8 @@ from .serializers import MessageSerializer
 from .permissions import IsParticipantOfConversation
 from .filters import MessageFilter
 from .pagination import MessagePagination
+from rest_framework.response import Response
+from rest_framework.status import HTTP_403_FORBIDDEN
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -71,3 +73,20 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Message.objects.filter(conversation__participants=self.request.user)
+
+def perform_create(self, serializer):
+    conversation = serializer.validated_data['conversation']
+    user = self.request.user
+
+    if user not in conversation.participants.all():
+        return Response({"detail": "You are not a participant of this conversation."}, status=HTTP_403_FORBIDDEN)
+
+    serializer.save(sender=user)
+
+def get_queryset(self):
+    queryset = Message.objects.filter(conversation__participants=self.request.user)
+
+    if not self.request.user.is_authenticated:
+        return Response({"detail": "Not authenticated."}, status=HTTP_403_FORBIDDEN)
+
+    return queryset
