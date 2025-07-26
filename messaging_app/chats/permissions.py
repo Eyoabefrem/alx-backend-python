@@ -1,18 +1,9 @@
 from rest_framework import permissions
-from rest_framework import permissions
-
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    """
-    Object-level permission to only allow users to access their own data.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
 
 class IsParticipantOfConversation(permissions.BasePermission):
     """
-    Custom permission to allow only participants of a conversation
-    to access or modify messages.
+    Allows access only to authenticated users who are participants of the conversation.
+    Applies to viewing, sending, updating, or deleting messages.
     """
 
     def has_permission(self, request, view):
@@ -22,7 +13,10 @@ class IsParticipantOfConversation(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         """
         Check if the user is a participant in the conversation.
-        `obj` here is a Message instance.
+        Applies to all methods including PUT, PATCH, DELETE.
         """
-        # Assuming `obj.conversation.participants` is a ManyToMany field
-        return request.user in obj.conversation.participants.all()
+        # Safe methods (GET, HEAD, OPTIONS) and unsafe (POST, PUT, PATCH, DELETE)
+        allowed_methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+        if request.method in allowed_methods:
+            return request.user in obj.conversation.participants.all()
+        return False
