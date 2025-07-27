@@ -1,7 +1,0 @@
-import os
-
-log_path = "requests.log"
-if os.path.isfile(log_path) and os.path.getsize(log_path) > 0:
-    print("requests.log exists and is not empty")
-else:
-    print("requests.log does not exist or is empty")
