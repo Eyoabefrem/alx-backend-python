@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# kubctl-0x03 — Rolling Update for Django app
+
+set -euo pipefail
+
+DEPLOYMENT="messaging-app-blue"
+SERVICE="messaging-app-service"
+NAMESPACE="default"
+
+echo "🚀 Triggering rolling update for $DEPLOYMENT..."
+
+# Apply the updated deployment
+kubectl apply -f blue_deployment.yaml -n $NAMESPACE
+
+# Monitor rolling update
+echo "⏳ Monitoring rollout status..."
+kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE
+
+# Get service ClusterIP for testing
+CLUSTER_IP=$(kubectl get svc $SERVICE -n $NAMESPACE -o jsonpath="{.spec.clusterIP}")
+PORT=$(kubectl get svc $SERVICE -n $NAMESPACE -o jsonpath="{.spec.ports[0].port}")
+
+# Test for downtime using curl continuously in background
+echo "🔄 Testing app availability during rollout..."
+echo "Press Ctrl+C to stop the test."
+
+while true; do
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://$CLUSTER_IP:$PORT/)
+    if [ "$HTTP_CODE" -eq 200 ]; then
+        echo "$(date +"%T") ✅ App OK"
+    else
+        echo "$(date +"%T") ❌ App returned $HTTP_CODE"
+    fi
+    sleep 2
+done &
+
+TEST_PID=$!
+
+# Wait until rollout is complete
+kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE
+
+# Kill curl test
+kill $TEST_PID 2>/dev/null || true
+
+# Verify current pods
+echo "📦 Current pods after rolling update:"
+kubectl get pods -l app=messaging-app,version=blue -n $NAMESPACE
+
+echo "🎉 Rolling update completed successfully!"

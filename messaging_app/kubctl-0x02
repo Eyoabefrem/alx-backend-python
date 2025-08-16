@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# kubctl-0x02 — Blue-Green Deployment automation
+
+set -euo pipefail
+
+BLUE_DEPLOYMENT="messaging-app-blue"
+GREEN_DEPLOYMENT="messaging-app-green"
+SERVICE="messaging-app-service"
+NAMESPACE="default"
+
+echo "🚀 Applying Blue deployment..."
+kubectl apply -f blue_deployment.yaml -n $NAMESPACE
+
+echo "🚀 Applying Green deployment..."
+kubectl apply -f green_deployment.yaml -n $NAMESPACE
+
+echo "⏳ Waiting for all pods to be ready..."
+kubectl rollout status deployment/$BLUE_DEPLOYMENT -n $NAMESPACE
+kubectl rollout status deployment/$GREEN_DEPLOYMENT -n $NAMESPACE
+
+echo "📦 Current pods:"
+kubectl get pods -l app=messaging-app -n $NAMESPACE
+
+echo "🔗 Service status:"
+kubectl get svc $SERVICE -n $NAMESPACE
+
+# Optional: Check logs for green deployment
+GREEN_POD=$(kubectl get pods -l app=messaging-app,version=green -n $NAMESPACE -o jsonpath="{.items[0].metadata.name}")
+echo "📄 Logs for Green Pod: $GREEN_POD"
+kubectl logs $GREEN_POD -n $NAMESPACE
+
+echo "✅ Blue-Green deployment applied successfully!"
+echo "ℹ️ To switch traffic to green, run:"
+echo "kubectl patch service $SERVICE -p '{\"spec\":{\"selector\":{\"app\":\"messaging-app\",\"version\":\"green\"}}}'"

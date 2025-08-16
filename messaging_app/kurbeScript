@@ -1,0 +1,64 @@
+#!/bin/bash
+# kurbeScript - Setup and verify Kubernetes local cluster using Minikube
+
+set -e  # Exit if any command fails
+
+# Detect OS type
+OS=$(uname -s)
+
+install_kubectl() {
+    echo "📥 Installing kubectl..."
+    if [ "$OS" = "Linux" ]; then
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+    elif [ "$OS" = "Darwin" ]; then
+        brew install kubectl || curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+    else
+        echo "❌ Unsupported OS. Please install kubectl manually."
+        exit 1
+    fi
+}
+
+install_minikube() {
+    echo "📥 Installing Minikube..."
+    if [ "$OS" = "Linux" ]; then
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    elif [ "$OS" = "Darwin" ]; then
+        brew install minikube || curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64 && sudo install minikube-darwin-amd64 /usr/local/bin/minikube
+    else
+        echo "❌ Unsupported OS. Please install Minikube manually."
+        exit 1
+    fi
+}
+
+# Step 1: Ensure kubectl is installed
+if ! command -v kubectl &> /dev/null; then
+    echo "⚠️ kubectl not found."
+    install_kubectl
+else
+    echo "✅ kubectl is already installed."
+fi
+
+# Step 2: Ensure Minikube is installed
+if ! command -v minikube &> /dev/null; then
+    echo "⚠️ Minikube not found."
+    install_minikube
+else
+    echo "✅ Minikube is already installed."
+fi
+
+# Step 3: Start Minikube cluster
+echo "🚀 Starting Minikube cluster..."
+minikube start
+
+# Step 4: Verify cluster status
+echo "🔍 Verifying Kubernetes cluster..."
+kubectl cluster-info
+
+# Step 5: Retrieve available pods
+echo "📦 Retrieving available pods..."
+kubectl get pods --all-namespaces
+
+echo "✅ Kubernetes local cluster setup and verification complete."
